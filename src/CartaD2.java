@@ -2,9 +2,13 @@
     public class CartaD2 extends Carta {
 
         public CartaD2(String cor) {
+
             super(cor);
         }
-
+        @Override
+        public String toString() {
+            return "[" + getCor() + " compra 2]";
+        }
         @Override
         public boolean podeSerJogadasobre(Carta topo) {
             return this.getCor().equals(topo.getCor()) || topo instanceof CartaD2;

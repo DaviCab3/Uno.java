@@ -3,6 +3,16 @@ public class CartaCoringa extends Carta {
     public CartaCoringa() {
         super("preto"); // Começa preta, mas vai mudar no jogo
     }
+    @Override
+    public String toString() {
+        // Se a cor ainda for preto, mostra apenas CORINGA.
+        // Se já tiver uma cor escolhida (ex: Verde), mostra [VERDE CORINGA]
+        if (this.getCor().equalsIgnoreCase("preto")) {
+            return "[ CORINGA ]";
+        } else {
+            return "[" + getCor().toUpperCase() + " CORINGA]";
+        }
+    }
 
     @Override
     public boolean podeSerJogadasobre(Carta topo) {

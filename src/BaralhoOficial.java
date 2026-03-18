@@ -23,7 +23,7 @@ public class BaralhoOficial extends Baralho {
             this.cartas.add(new CartaPular(cor));
 
             this.cartas.add(new CartaInverte(cor));
-            this.cartas.add(new CartaInverte(cor))
+            this.cartas.add(new CartaInverte(cor));
 
             this.cartas.add(new CartaD2(cor));
             this.cartas.add(new CartaD2(cor));
@@ -31,8 +31,8 @@ public class BaralhoOficial extends Baralho {
         }
 
         for (int j = 1; j <= 4; j++) {
-            this.cartas.add(new CartaD4);
-            this.cartas.add(new CartaCoringa);
+            this.cartas.add(new CartaD4());
+            this.cartas.add(new CartaCoringa());
         }
 
 

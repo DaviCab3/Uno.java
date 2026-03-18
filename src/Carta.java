@@ -8,7 +8,9 @@ public abstract class Carta {
 
         Cor = cor;
     }
-
+    public void setCor(String novaCor) {
+        this.Cor = novaCor;
+    }
     public String getCor() {
 
         return Cor;

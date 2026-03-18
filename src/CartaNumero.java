@@ -9,6 +9,12 @@ public  class CartaNumero  extends Carta{
         super(cor);
         this.numero = numero;
     }
+    @Override
+    public String toString() {
+        // Retorna algo como "[azul 7]"
+        return "[" + getCor() + " " + numero + "]";
+    }
+
 
     @Override
     public boolean podeSerJogadasobre(Carta topo) {

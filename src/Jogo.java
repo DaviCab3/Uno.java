@@ -7,7 +7,7 @@ public class Jogo {
     private Baralho baralho;
     private List<Jogador> players;
     private int indiceAtual;
-    private int direcao;
+    private int direcao; // 1 para horário, -1 para anti-horário
     private Scanner scanner;
     private Carta cartaTopo;
 
@@ -19,21 +19,23 @@ public class Jogo {
     }
 
     public void adicionarJogador(String nome) {
-        players.add(new Jogador(nome));
+        if (players.size() < 10) {
+            players.add(new Jogador(nome));
+        } else {
+            System.out.println("Limite de 10 jogadores atingido.");
+        }
     }
 
     public void comecar() {
         if (players.size() < 2) {
-            System.out.println("Adicione pelo menos 2 jogadores!");
+            System.out.println("Erro: Adicione pelo menos 2 jogadores!");
             return;
         }
 
-        System.out.println("Escolha o baralho: 1-Uno oficial, 2- Convencional");
+        System.out.println("Escolha o baralho: 1-Uno Oficial, 2- Convencional (52 cartas)");
         int opcao = scanner.nextInt();
 
-        // Polimorfismo: Baralho aceita qualquer subclasse
         if (opcao == 1) {
-
             this.baralho = new BaralhoOficial(new ArrayList<>());
         } else {
             this.baralho = new BaralhoConvencional(new ArrayList<>());
@@ -42,16 +44,19 @@ public class Jogo {
         baralho.montarBaralho();
         baralho.embaralhar();
 
-        // Distribui as cartas usando  método adicionarCarta
         for (Jogador j : players) {
             for (int k = 0; k < 7; k++) {
                 j.adicionarCarta(baralho.comprar());
             }
         }
 
+        // Regra: Primeira carta não pode ser preta/coringa
         this.cartaTopo = baralho.comprar();
+        while (this.cartaTopo instanceof CartaCoringa || this.cartaTopo instanceof CartaD4) {
+            this.cartaTopo = baralho.comprar();
+        }
 
-        System.out.println("\n--- Jogo Iniciado! ---");
+        System.out.println("\n--- JOGO INICIADO! ---");
         loopPrincipal();
     }
 
@@ -72,53 +77,76 @@ public class Jogo {
             System.out.println("CARTA NA MESA: " + cartaTopo);
             System.out.println("VEZ DE: " + jogadorDaVez.getNome());
 
-            // Usando  método mostrarMao()
             jogadorDaVez.mostrarMao();
 
-            System.out.println("Escolha o NÚMERO da carta para jogar ou -1 para COMPRAR:");
+            System.out.println("Escolha a carta ou -1 para COMPRAR:");
             int escolha = scanner.nextInt();
 
             if (escolha == -1) {
                 Carta comprada = baralho.comprar();
                 if (comprada != null) {
                     jogadorDaVez.adicionarCarta(comprada);
-                    System.out.println("Você comprou: " + comprada);
+                    System.out.println("Comprou: " + comprada);
                 }
                 avancarVez();
             } else {
-                // Usando  método verCarta() para validar antes de remover
                 Carta escolhida = jogadorDaVez.verCarta(escolha);
 
                 if (escolhida != null && escolhida.podeSerJogadasobre(this.cartaTopo)) {
-                    // Se for válida,  o jogarCarta() que remove da mão
                     this.cartaTopo = jogadorDaVez.jogarCarta(escolha);
+                    System.out.println("Cartas restantes: " + jogadorDaVez.getQuantidadeCartas());
 
-                    // Aplicar efeito (Polimorfismo)
-                    if (this.cartaTopo instanceof CartaPular) {
-                        avancarVez(); // Pula o próximo!
-                        System.out.println("O próximo jogador foi pulado!");
-                    } else if (this.cartaTopo instanceof CartaInverte) {
-                        inverterDirecao();
-                    } else if (this.cartaTopo instanceof CartaD2) {
+                    // --- LÓGICA DE EFEITOS UNIFICADA (POLIMORFISMO + CASTING) ---
+
+                    // 1. EFEITO PULAR (CartaPular OU Valete 'J')
+                    if (this.cartaTopo instanceof CartaPular ||
+                            (this.cartaTopo instanceof CartaConvencional && ((CartaConvencional) this.cartaTopo).getValor().equals("J"))) {
+                        System.out.println(">> EFEITO: Próximo jogador pulado!");
                         avancarVez();
-                        Jogador proximo = players.get(indiceAtual);
-                        proximo.adicionarCarta(baralho.comprar());
-                        proximo.adicionarCarta(baralho.comprar());
-                        System.out.println(">> EFEITO: " + proximo.getNome() + " comprou 2 e perdeu a vez!");
-                        if (jogadorDaVez.temMaovazia()) {
-                        System.out.println("\n" + jogadorDaVez.getNome() + " VENCEU O JOGO!");
+                    }
+
+                    // 2. EFEITO INVERTER (CartaInverte OU Dama 'Q')
+                    else if (this.cartaTopo instanceof CartaInverte ||
+                            (this.cartaTopo instanceof CartaConvencional && ((CartaConvencional) this.cartaTopo).getValor().equals("Q"))) {
+                        System.out.println(">> EFEITO: Sentido invertido!");
+                        inverterDirecao();
+                    }
+
+                    // 3. EFEITO +2 (CartaD2 OU Rei 'K')
+                    else if (this.cartaTopo instanceof CartaD2 ||
+                            (this.cartaTopo instanceof CartaConvencional && ((CartaConvencional) this.cartaTopo).getValor().equals("K"))) {
+                        avancarVez();
+                        Jogador alvo = players.get(indiceAtual);
+                        alvo.adicionarCarta(baralho.comprar());
+                        alvo.adicionarCarta(baralho.comprar());
+                        System.out.println(">> EFEITO: " + alvo.getNome() + " comprou 2 e perdeu a vez!");
+                    }
+
+                    // 4. EFEITO CORINGAS (Funciona para ambos os baralhos)
+                    if (this.cartaTopo instanceof CartaCoringa || this.cartaTopo instanceof CartaD4) {
+                        System.out.println("Escolha a nova COR ou NAIPE:");
+                        String novaCor = scanner.next();
+                        this.cartaTopo.setCor(novaCor);
+
+                        if (this.cartaTopo instanceof CartaD4) {
+                            avancarVez();
+                            Jogador alvo = players.get(indiceAtual);
+                            for(int i=0; i<4; i++) alvo.adicionarCarta(baralho.comprar());
+                            System.out.println(">> EFEITO: " + alvo.getNome() + " comprou 4 e perdeu a vez!");
+                        }
+                    }
+
+                    // Verificação de Vitória
+                    if (jogadorDaVez.temMaovazia()) {
+                        System.out.println("\n*** " + jogadorDaVez.getNome() + " VENCEU O JOGO! ***");
                         jogoRolando = false;
                     } else {
                         avancarVez();
                     }
                 } else {
-                    System.out.println("Jogada inválida! Tente outra carta ou compre.");
+                    System.out.println("Jogada inválida!");
                 }
             }
         }
     }
 }
-
-
-
-
