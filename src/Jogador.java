@@ -53,7 +53,7 @@ public Carta jogarCarta (int indice) {
     }
 }
 
-}
+
 
 
 

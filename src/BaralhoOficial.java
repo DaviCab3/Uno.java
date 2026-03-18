@@ -1,5 +1,11 @@
+import java.util.List;
+
 public class BaralhoOficial extends Baralho {
 
+
+    public BaralhoOficial(List<Carta> cartas) {
+        super(cartas);
+    }
     @Override
     public void montarBaralho() {
         String[] cores = {"azul", "amarelo", "verde", "vermelho" };

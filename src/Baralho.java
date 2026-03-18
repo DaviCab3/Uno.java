@@ -26,10 +26,12 @@ public abstract class Baralho {
 
     }
     public int tamanho() {
+
         return this.cartas.size();
     }
 
     public boolean estaVazio() {
+
         return this.cartas.isEmpty();
     }
 }
